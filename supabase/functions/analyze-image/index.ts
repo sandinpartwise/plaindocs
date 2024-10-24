@@ -8,7 +8,16 @@
 import { OpenAI } from 'https://deno.land/x/openai@v4.56.0/mod.ts';
 import { encode } from 'https://deno.land/std@0.138.0/encoding/base64.ts';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
   const { image, type } = await req.json();
 
   const apiKey = Deno.env.get("OPENAI_API_KEY");
@@ -67,7 +76,10 @@ Deno.serve(async (req) => {
   const jsonString = rawContent.replace(/```json\n|```/g, '').replace(/\n/g, '');
   console.log("Cleaned JSON:", jsonString);
 
-  return new Response(jsonString, { status: 200 });
+  return new Response(jsonString, { 
+    headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+    status: 200 
+  });
 })
 
 /* To invoke locally:
